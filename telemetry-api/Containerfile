@@ -1,0 +1,23 @@
+# 1. The Base OS
+FROM python:3.12-slim
+
+# 2. The SRE Trick: Inject the pre-compiled uv binary directly
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# 3. Set the working directory
+WORKDIR /app
+
+# 4. Layer Caching Step 1: Copy ONLY the lockfiles
+COPY pyproject.toml uv.lock ./
+
+# 5. Layer Caching Step 2: Install dependencies (ignoring the app code for now)
+RUN uv sync --frozen --no-install-project
+
+# 6. Copy the actual application code (this layer changes the most often)
+COPY main.py .
+
+# 7. Expose the port
+EXPOSE 8000
+
+# 8. Start the server using uv's managed environment
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
