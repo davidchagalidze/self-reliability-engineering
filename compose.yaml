@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # 1. The Database Service
+  db:
+    build: 
+      context: ./database
+      dockerfile: Containerfile
+    container_name: sre-postgres
+    ports:
+      - "5432:5432"
+    # THE SRE WAY: Pass the secrets directly from the ignored .env file
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # 2. The Core API Service
+  telemetry-api:
+    build:
+      context: ./telemetry-api
+      dockerfile: Containerfile
+    container_name: sre-telemetry-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    # Pass the .env file so the API gets the DATABASE_URL securely
+    env_file:
+      - .env
+
+volumes:
+  pgdata:
