@@ -1,0 +1,8 @@
+# Use the official, lightweight Alpine version of PostgreSQL 16
+FROM postgres:16-alpine
+
+# Copy our custom schema into the initialization directory
+COPY init.sql /docker-entrypoint-initdb.d/
+
+# Expose the standard PostgreSQL port
+EXPOSE 5432
