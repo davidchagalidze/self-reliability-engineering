@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRE - Self Reliability Engineering</title>
+    <link rel="icon" href="data:,">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-primary: #00ff00;
+            --text-secondary: #00ffff;
+            --alert-color: #ff5555;
+            --border-color: #00ffff;
+            /* Using native system fonts for zero loading time */
+            --font-stack: Consolas, "Courier New", Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-stack);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            text-transform: uppercase;
+        }
+
+        .cyan { color: var(--text-secondary); }
+        .green { color: var(--text-primary); }
+        .red { color: var(--alert-color); }
+        .bold { font-weight: 700; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            border: 2px solid var(--border-color);
+            padding: 15px;
+        }
+
+        .header-bar {
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-panel {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+        }
+
+        .metric-title {
+            border-bottom: 1px dashed var(--border-color);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .graph-container {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            height: 350px; /* Fixed height stops layout shifts */
+        }
+
+        .data-entry-form {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .form-label {
+            flex-basis: 150px;
+        }
+
+        input[type="text"], input[type="number"] {
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid var(--text-primary);
+            color: var(--text-secondary);
+            font-family: var(--font-stack);
+            font-size: 1rem;
+            padding: 5px;
+            outline: none;
+            flex-grow: 1;
+        }
+
+        input:focus {
+            border-bottom: 1px solid var(--text-secondary);
+        }
+
+        .btn-terminal {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--text-secondary);
+            padding: 10px 20px;
+            font-family: var(--font-stack);
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .btn-terminal:hover {
+             background-color: var(--text-secondary);
+             color: var(--bg-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-bar">
+            <div><span class="cyan bold">K9S</span> > CTX: SRE-TRACKER > NS: HUMAN-BODY</div>
+            <div>STATUS: OPTIMIZED</div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="metric-panel">
+                <div class="metric-title cyan">WEIGHT (KG)</div>
+                <div class="metric-value green">82.5</div>
+            </div>
+            <div class="metric-panel">
+                <div class="metric-title cyan">STEPS TODAY</div>
+                <div class="metric-value green">8,432</div>
+            </div>
+            <div class="metric-panel">
+                <div class="metric-title cyan">WATER (ML)</div>
+                <div class="metric-value red">1250 / 2500</div>
+            </div>
+            <div class="metric-panel">
+                <div class="metric-title cyan">CALORIES IN</div>
+                <div class="metric-value green">1850</div>
+            </div>
+        </div>
+
+        <div class="graph-container">
+            <div class="metric-title cyan">TELEMETRY: LAST 7 DAYS</div>
+            <canvas id="mainChart"></canvas>
+        </div>
+
+        <div class="data-entry-form">
+             <div class="metric-title cyan">MANUAL METRIC INGESTION</div>
+             <div class="form-row">
+                 <label class="form-label green">$ metric_name:</label>
+                 <input type="text" placeholder="e.g., weight_kg">
+             </div>
+             <div class="form-row">
+                 <label class="form-label green">$ metric_value:</label>
+                 <input type="number" placeholder="value...">
+             </div>
+             <button class="btn-terminal">&gt; EXECUTE INGEST</button>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        const cyan = '#00ffff';
+        const green = '#00ff00';
+
+        const mainChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'WEIGHT_KG',
+                    data: [83.2, 83.0, 82.8, 82.9, 82.5, 82.4, 82.5],
+                    borderColor: cyan,
+                    borderWidth: 2,
+                    tension: 0, // Sharp angles, no curves for terminal look
+                    pointBackgroundColor: cyan,
+                },
+                {
+                    label: 'STEPS (x1000)',
+                    data: [7.5, 9.2, 4.5, 8.0, 10.5, 6.2, 8.4],
+                    borderColor: green,
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    tension: 0,
+                    pointBackgroundColor: green,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // DISABLED ANIMATIONS for instant loading
+                plugins: {
+                    legend: { labels: { color: green, font: { family: 'Consolas, monospace' } } }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#333', borderDash: [2, 2] },
+                        ticks: { color: green, font: { family: 'Consolas, monospace' } }
+                    },
+                    x: {
+                        grid: { color: '#333', borderDash: [2, 2] },
+                        ticks: { color: green, font: { family: 'Consolas, monospace' } }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

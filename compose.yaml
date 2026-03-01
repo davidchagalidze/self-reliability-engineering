@@ -27,5 +27,16 @@ services:
     env_file:
       - .env
 
+  # 3. The Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Containerfile
+    container_name: sre-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - telemetry-api
+
 volumes:
   pgdata:
